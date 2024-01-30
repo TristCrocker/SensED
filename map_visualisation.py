@@ -32,8 +32,12 @@ def downsample_map(map_array, target_res):
     return downsampled_map
 
 
-def upscale_map(map_array, block_size):
+def upscale_map(downsampled_map, original_map):
+    # Gets the shapes of both arrays and then finds the necessary block size
+    down_res = downsampled_map.shape
+    original_res = original_map.shape
+    block_size = (int(original_res[0] / down_res[0]), int(original_res[1] / down_res[1]))
     # Scales the downsampled map back to the original size by copying array values n times along
     # axis 0 and m times along axis 1 for a given (n, m) block size
-    scaled_map = np.kron(map_array, np.ones(block_size))
+    scaled_map = np.kron(downsampled_map, np.ones(block_size))
     return scaled_map
