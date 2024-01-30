@@ -29,7 +29,7 @@ def downsample_map(map, target_res):
     # For efficiency purposes, camera frame cropping should be done before disparity map generation
     block_size = (int(current_res[0] / target_res[1]), int(current_res[1] / target_res[0]))
     # Makes the value of each block the max value of its sub-blocks
-    downsampled_map = block_reduce(map, block_size, func=np.max)
+    downsampled_map = block_reduce(map, block_size, func=np.median)
     # Scales the downsampled map back to the original size by copying array values n times along
     # axis 0 and m times along axis 1 for a given (n, m) block size
     scaled_map = np.kron(downsampled_map, np.ones(block_size))
