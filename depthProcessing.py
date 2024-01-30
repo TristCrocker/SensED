@@ -1,14 +1,21 @@
 import numpy as np
 import cv2 as cv
 
-#Function to produce depth map of images
-def produceDepthMap(leftImgPath, rightImgPath):
-    # Import two images
-    leftImage = cv.imread(leftImgPath, cv.IMREAD_GRAYSCALE)
-    rightImage = cv.imread(rightImgPath, cv.IMREAD_GRAYSCALE)
+#Produce disparity map of images
+def produceDisparityMap(leftRectifiedImage, rightRectifiedImage):
+    
+    numDisparities = 16 #Disparities in BM
+    blockSize = 21 #Block Size for BM
 
     # Stereo matching with block match algorithm
-    stereo = cv.StereoBM_create(numDisparities=16, blockSize=21)
-    depthMap = stereo.compute(leftImage, rightImage)
+    stereo = cv.StereoBM_create(numDisparities=numDisparities, blockSize=blockSize)
+    disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)
 
+    return disparity
+
+#Produce depth map from disparity map
+def produceDepthMap(disparityMap, baseline, focalLength):
+
+    depthMap = baseline*focalLength/disparityMap #Calulcate depth map (Z=B*f/disparity)
     return depthMap
+
