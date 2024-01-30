@@ -22,14 +22,18 @@ def display_disparity(disp, window_name, colour=False):
         quit()
 
 
-def downsample_map(map, target_res):
-    current_res = map.shape
+def downsample_map(map_array, target_res):
+    current_res = map_array.shape
     # Presumes that the given depth map has the same aspect ratio as the grid of motors
     # For efficiency purposes, camera frame cropping should be done before disparity map generation
     block_size = (int(current_res[0] / target_res[1]), int(current_res[1] / target_res[0]))
     # Makes the value of each block the max value of its sub-blocks
-    downsampled_map = block_reduce(map, block_size, func=np.median)
+    downsampled_map = block_reduce(map_array, block_size, func=np.median)
+    return downsampled_map
+
+
+def upscale_map(map_array, block_size):
     # Scales the downsampled map back to the original size by copying array values n times along
     # axis 0 and m times along axis 1 for a given (n, m) block size
-    scaled_map = np.kron(downsampled_map, np.ones(block_size))
+    scaled_map = np.kron(map_array, np.ones(block_size))
     return scaled_map
