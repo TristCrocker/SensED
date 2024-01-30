@@ -10,7 +10,8 @@ def produceDisparityMap(leftRectifiedImage, rightRectifiedImage):
 
     # Stereo matching with block match algorithm
     stereo = cv.StereoBM_create(numDisparities=numDisparities, blockSize=blockSize)
-    disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)
+    #Compute disparity map and convert to floating point
+    disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage).astype(np.float32)/16 
 
     return disparity
 
