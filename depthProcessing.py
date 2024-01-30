@@ -4,6 +4,7 @@ import cv2 as cv
 #Produce disparity map of images
 def produceDisparityMap(leftRectifiedImage, rightRectifiedImage):
     
+    #Block matching parameters
     numDisparities = 16 #Disparities in BM
     blockSize = 21 #Block Size for BM
 
@@ -13,9 +14,10 @@ def produceDisparityMap(leftRectifiedImage, rightRectifiedImage):
 
     return disparity
 
-#Produce depth map from disparity map
+#Produce depth map from disparity map (Using camera parameters from calibration)
+#baseline is distance between camera
 def produceDepthMap(disparityMap, baseline, focalLength):
 
-    depthMap = baseline*focalLength/disparityMap #Calulcate depth map (Z=B*f/disparity)
+    depthMap = baseline*focalLength/disparityMap #Calulcate depth map from disparity map (Z=B*f/disparity)
     return depthMap
 
