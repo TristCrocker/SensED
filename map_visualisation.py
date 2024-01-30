@@ -3,16 +3,15 @@ import numpy as np
 from skimage.measure import block_reduce
 
 
-def display_disparity(disp, window_name):
-    # Gets the min and max values in the disparity map
-    # Using fixed values may be more efficient?
-    local_min = disp.min()
-    local_max = disp.max()
-
+def display_disparity(disp, window_name, colour=False):
     # Disparity map contains extreme values that cannot be displayed
     # By normalising the disparity map, it becomes possible to display it
-    normalised_image = cv2.normalize(disp, disp, alpha=local_min, beta=local_max, norm_type=cv2.NORM_MINMAX,
+    normalised_image = cv2.normalize(disp, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                      dtype=cv2.CV_8U)
+
+    # If colour is set to True then the output image will be in colour (rather than greyscale)
+    if colour:
+        normalised_image = cv2.applyColorMap(normalised_image, cv2.COLORMAP_JET)
 
     # Displays the disparity map in the specified window
     cv2.imshow(window_name, normalised_image)
