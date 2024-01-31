@@ -19,6 +19,11 @@ def produceDisparityMap(leftRectifiedImage, rightRectifiedImage):
 #baseline is distance between camera
 def produceDepthMap(disparityMap, baseline, focalLength):
 
-    depthMap = baseline*focalLength/disparityMap #Calulcate depth map from disparity map (Z=B*f/disparity)
+    #Catch division by zero
+    try:
+         depthMap = baseline*focalLength/disparityMap #Calulcate depth map from disparity map (Z=B*f/disparity)
+    except:
+        print("Division by zero error")
+    
     return depthMap
 
