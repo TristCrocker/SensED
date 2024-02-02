@@ -2,6 +2,7 @@ import board
 import busio
 import adafruit_drv2605
 import math
+import numpy as np
 
 def innitMotorVars():
     i2c = busio.I2C(board.SCL, board.SDA)
@@ -13,19 +14,15 @@ def innitMotorVars():
 def motorOutput(depthMapArray, i2c, drv, a=2.9, c=4):
     
     #Gets the smallest number from the depth map array
-    minDistance = -1
-    for i in range(len(depthMapArray)):
-        for j in range(len(depthMapArray[i])):
-            if (minDistance == -1):
-                minDistance = depthMapArray[i][j]
-            elif(depthMapArray[i][j] < minDistance):
-                minDistance = depthMapArray[i][j]
+    minDistance = np.amin(depthMapArray)
 
-        #Calculates the intensity we want to have of the motor
-        intensity = (1/(1+math.e**(a*(minDistance/1000) - c)))
+    #Calculates the intensity we want to have of the motor
+    intensity = (1/(1+math.e**(a*(minDistance/1000) - c)))
 
-        #Changes the intensity of the motor. (127 is 100% intensity)
-        drv.realtime_value = 127*intensity
+    #Changes the intensity of the motor. (127 is 100% intensity)
+    drv.realtime_value = 127*intensity
+
+    return
 
     
 
