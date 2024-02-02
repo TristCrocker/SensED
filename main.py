@@ -8,13 +8,14 @@ downsampleMapWindow = cv.namedWindow("Downsampled Disparity Map")
 
 #Real time loop
 while True:
-    #Create and display disparity map
+    #Create and display full resolution disparity map
     dispMap = depthProcessing.produceDisparityMap(img1, img2)
     map_visualisation.display_disparity(dispMap, dispMapWindow)
 
     #Downsample disparity map and display
     downsampledMap = map_visualisation.downsample_map(dispMap)
-    map_visualisation.display_disparity(downsampledMap, downsampleMapWindow)
+    upscaledMap = map_visualisation.upscale_map(downsampledMap)
+    map_visualisation.display_disparity(upscaledMap, downsampleMapWindow)
 
     #Produce depth for motor input
     depthMap = depthProcessing.produceDepthMap(downsampledMap, 1, 1)
