@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from skimage.measure import block_reduce
 
-
 def display_disparity(disp, window_name, colour=False):
     # Disparity map contains extreme values that cannot be displayed
     # By normalising the disparity map, it becomes possible to display it
