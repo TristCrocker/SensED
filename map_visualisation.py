@@ -49,17 +49,4 @@ def upscale_map(downsampled_map, original_map):
     return scaled_map
 
 
-# def remove_bad_edge(disp_map):
-#     clean_disp = disp_map.copy()
-#
-#     # Deletes columns that have -1 as the value in the first row
-#     bad_columns = clean_disp[0] == -1
-#     print(bad_columns)
-#     clean_disp = clean_disp[:, np.logical_not(bad_columns)]
-#
-#     # Ensures that the resolution remains divisible by 10
-#     print(clean_disp.shape)
-#     clean_disp = np.delete(clean_disp, slice((clean_disp.shape[1] // 10) * 10, clean_disp.shape[1]), axis=1)
-#     print(clean_disp.shape)
-#     return clean_disp
 
