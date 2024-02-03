@@ -24,6 +24,8 @@ def display_disparity(disp, window_name, colour=False):
 
 def downsample_map(map_array, target_res):
     current_shape = map_array.shape
+    if current_shape[0] % 10 != 0 or current_shape[1] % 10 != 0:
+        raise ValueError('Starting resolution must be divisible by 10.')
     # Presumes that the given depth map has the same aspect ratio as the grid of motors
     # For efficiency purposes, camera frame cropping should be done before disparity map generation
     block_size = (int((current_shape[0] / target_res[1]) / 10), int((current_shape[1] / target_res[0]) / 10))
