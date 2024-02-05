@@ -2,10 +2,11 @@ import cv2
 import numpy as np
 from skimage.measure import block_reduce
 
+
 def display_disparity(disp, window_name, colour=False):
     # Disparity map contains extreme values that cannot be displayed
     # By normalising the disparity map, it becomes possible to display it
-    normalised_image = cv2.normalize(disp, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
+    normalised_image = cv2.normalize(disp, disp, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                      dtype=cv2.CV_8U)
 
     # If colour is set to True then the output image will be in colour (rather than greyscale)
@@ -22,12 +23,18 @@ def display_disparity(disp, window_name, colour=False):
 
 
 def downsample_map(map_array, target_res):
-    current_res = map_array.shape
+    current_shape = map_array.shape
+    if current_shape[0] % 10 != 0 or current_shape[1] % 10 != 0:
+        raise ValueError('Starting resolution must be divisible by 10.')
     # Presumes that the given depth map has the same aspect ratio as the grid of motors
     # For efficiency purposes, camera frame cropping should be done before disparity map generation
-    block_size = (int(current_res[0] / target_res[1]), int(current_res[1] / target_res[0]))
+    block_size = (int((current_shape[0] / target_res[1]) / 10), int((current_shape[1] / target_res[0]) / 10))
     # Makes the value of each block the max value of its sub-blocks
     downsampled_map = block_reduce(map_array, block_size, func=np.median)
+    block_size = (10, 10)
+    # Since disparity is inversely proportional to depth, we want to find the max disparity values in order to get
+    # minimum depth values.
+    downsampled_map = block_reduce(downsampled_map, block_size, func=np.max, cval=-1)
     return downsampled_map
 
 
@@ -40,3 +47,6 @@ def upscale_map(downsampled_map, original_map):
     # axis 0 and m times along axis 1 for a given (n, m) block size
     scaled_map = np.kron(downsampled_map, np.ones(block_size))
     return scaled_map
+
+
+
