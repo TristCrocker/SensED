@@ -28,10 +28,10 @@ def downsample_map(map_array, target_res):
         raise ValueError('Starting resolution must be divisible by 10.')
     # Presumes that the given depth map has the same aspect ratio as the grid of motors
     # For efficiency purposes, camera frame cropping should be done before disparity map generation
-    block_size = (int((current_shape[0] / target_res[1]) / 10), int((current_shape[1] / target_res[0]) / 10))
+    block_size = (10, 10)
     # Makes the value of each block the max value of its sub-blocks
     downsampled_map = block_reduce(map_array, block_size, func=np.median)
-    block_size = (10, 10)
+    block_size = (int((current_shape[0] / target_res[1]) / 10), int((current_shape[1] / target_res[0]) / 10))
     # Since disparity is inversely proportional to depth, we want to find the max disparity values in order to get
     # minimum depth values.
     downsampled_map = block_reduce(downsampled_map, block_size, func=np.max, cval=-1)
