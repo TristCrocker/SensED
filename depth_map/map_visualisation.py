@@ -53,14 +53,15 @@ def filter_map(left_disp, left_image, left_matcher, right_image):
     wls_filter.setLambda(lmbda)
     wls_filter.setSigmaColor(sigma)
 
-    filtered_disp = wls_filter.filter(left_disp, left_image, None, disparity_map_right=right_disp, right_view=right_image)
+    filtered_disp = wls_filter.filter(left_disp, left_image, None, disparity_map_right=right_disp,
+                                      right_view=right_image)
     # Makes the filtered disparity map displayable
     filtered_disp = cv2.ximgproc.getDisparityVis(filtered_disp, None)
     return filtered_disp
+
 
 def calculate_bar_length(disp):
     # Calculates the length of the black bar on the left, so that it can be cropped from the disparity map
     for i in range(0, disp.shape[1]):
         if disp[0, i] >= 0 or disp[-1, i] >= 0:
             return i
-
