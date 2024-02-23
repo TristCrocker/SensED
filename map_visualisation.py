@@ -22,12 +22,11 @@ def display_disparity(disp, window_name, colour=False):
 
 def downsample_map(map_array, target_res):
     current_shape = map_array.shape
-    # Presumes that the given depth map has the same aspect ratio as the grid of motors
-    # For efficiency purposes, camera frame cropping should be done before disparity map generation
-    # Makes the value of each block the max value of its sub-blocks
+    # optimally the initial resolution should be divisible by the target resolution, i.e. if the target res is 4x8,
+    # the initial x length should be divisible by 4 and initial y length by 8.
     block_size = (math.ceil(current_shape[0] / target_res[1]), math.ceil(current_shape[1] / target_res[0]))
-    # Since disparity is inversely proportional to depth, we want to find the max disparity values in order to get
-    # minimum depth values.
+    # The value selected is the 90th percentile, which should pick up areas of high disparity (and therefore low depth),
+    # but also not select outliers.
     downsampled_map = block_reduce(map_array, block_size, func=np.quantile, cval=-1, func_kwargs={'q': 0.9})
     return downsampled_map
 
