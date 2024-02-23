@@ -14,7 +14,7 @@ def display_disparity(disp, window_name, colour=False):
     # Displays the disparity map in the specified window
     cv2.imshow(window_name, normalised_image)
     # Waits 1ms for a key to be pressed, then stores the key that is pressed
-    key = cv2.waitKey(0)
+    key = cv2.waitKey(1)
     # If the pressed key is q then the program quits
     if key == ord('q'):
         quit()
