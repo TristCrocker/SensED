@@ -7,8 +7,6 @@ else
 fi
 
 # Install Python dependencies.
-python3 -m pip install pip --upgrade
-python3 -m pip install -r requirements.txt
 
 # Download TF Lite model with metadata.
 FILE=${DATA_DIR}/efficientnet_lite0.tflite
