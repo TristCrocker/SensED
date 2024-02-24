@@ -10,10 +10,10 @@ cv.namedWindow("Downsampled Disparity Map")
 cvFile = cv.FileStorage()
 cvFile.open('stereoMap.xml', cv.FileStorage_READ)
 
-stereoMapL_x = cvFile.getNode('stereoMapL_x').mat()
-stereoMapL_y = cvFile.getNode('stereoMapL_y').mat()
-stereoMapR_x = cvFile.getNode('stereoMapR_x').mat()
-stereoMapR_y = cvFile.getNode('stereoMapR_y').mat()
+stereoMapL_x = cvFile.getNode('StereoMapL_x').mat()
+stereoMapL_y = cvFile.getNode('StereoMapL_y').mat()
+stereoMapR_x = cvFile.getNode('StereoMapR_x').mat()
+stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 
 #Open cameras
 capL = cv.VideoCapture(0, cv.CAP_DSHOW)
