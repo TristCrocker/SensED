@@ -1,6 +1,6 @@
 #Real time implementation in here
-import depthProcessing
-import map_visualisation
+from depth_map import depthProcessing
+from depth_map import map_visualisation
 import cv2 as cv
 
 cv.namedWindow("Disparity Map") #Disparity Map window
