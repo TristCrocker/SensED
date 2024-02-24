@@ -110,6 +110,7 @@ class ImageClassifier(object):
 
     # Load label list from metadata.
     file_name = displayer.get_packed_associated_file_list()[0]
+    print(file_name)
     label_map_file = displayer.get_associated_file_buffer(file_name).decode()
     label_list = list(filter(len, label_map_file.splitlines()))
     self._label_list = label_list
