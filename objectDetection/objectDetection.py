@@ -24,8 +24,8 @@ def detectObject(img, net, classes):
 #while True:
     #img = picamLeft.capture_array("main")
     img = cv2.resize(img, (320,320))
-    b, g, r, a = cv2.split(img)
-    img = cv2.merge([r, g, b])
+    #b, g, r, a = cv2.split(img)
+    #img = cv2.merge([r, g, b])
     
     height, width, _ = img.shape
     
@@ -47,7 +47,7 @@ def detectObject(img, net, classes):
             if confidence > 0.2 and class_id == 0:
                 center_x = int(detection[0]*width)
                 center_y = int(detection[1]*height)
-                print(center_x, center_y)
+                
                 #w = int(detection[2]*width)
                 #h = int(detection[3]*height)
 

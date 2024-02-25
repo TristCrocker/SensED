@@ -82,7 +82,8 @@ newCameraMatrixR, roi_R = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, (wi
 ############## sv calibration #####################################################
 
 flags = 0
-flags |= cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1|cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6
+#flags |= cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
+flags |= cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1|cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6|cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
 criteria_stereo = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, imgpointsL, imgpointsR, newCameraMatrixL,distL, newCameraMatrixR, distR, grayL.shape[::-1], criteria_stereo, flags) #??
 

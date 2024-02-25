@@ -26,8 +26,13 @@ stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 picamLeft = Picamera2(0)
 picamRight = Picamera2(1)
 
-picamLeft.start_preview(Preview.QTGL)
-picamRight.start_preview(Preview.QTGL)
+camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
+camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
+picamLeft.configure(camera_configL)
+picamRight.configure(camera_configR)
+
+picamLeft.start_preview()
+picamRight.start_preview()
 
 picamLeft.start()
 picamRight.start()
@@ -68,6 +73,7 @@ while True:
     t0 = t1
 
     imgLeft = picamLeft.capture_array("main")
+    objImage = imgLeft
     imgRight = picamRight.capture_array("main")
 
     if keyboard.is_pressed('q'):
@@ -96,7 +102,7 @@ while True:
     dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
-    center_x, center_y = objectDetection.detectObject(imgLeft, net, classes)
+    center_x, center_y = objectDetection.detectObject(objImage, net, classes)
     
     
     
