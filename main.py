@@ -54,9 +54,11 @@ cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)
 # Sigmoid depth map normalizing function
 sigmoid = lambda x: 1 / (1 + math.e ** (1 * (x / 1000) - 3))
 t0 = datetime.now()
+
+pool = multiprocessing.Pool(processes=2)
+
 # Real time loop
 while True:
-
     t1 = datetime.now()
     time_passed = (t1 - t0)
     print("Average FPS: " + str(1 / time_passed.total_seconds()))
@@ -81,18 +83,19 @@ while True:
 
     # stereo, minDisparity, numDisparities = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
 
-    depth_process = multiprocessing.Process(target=depthProcessing.depth_processing, args=[stereo, grayFrameL, grayFrameR])
-    object_process = multiprocessing.Process(target=objectDetection.detectObject, args=[imgLeft, net, classes])
+    depth_process = pool.starmap_async(depthProcessing.depth_processing, [stereo, grayFrameL, grayFrameR])
+    object_process = pool.starmap_async(objectDetection.detectObject, [imgLeft, net, classes])
 
-    depth_process.start()
-    object_process.start()
+    depth_process.wait()
+    object_process.wait()
 
-    depth_process.join()
-    object_process.join()
+    depth_map = depth_process.get()
+    object_results = object_process.get()
 
     controller = motor_output.PCA9685_Controller()
     # TODO: create array with intensity and pattern for motors
     controller.control_motors()
 
+pool.close()
 drv.realtime_value = 0
 cv.destroyAllWindows()
