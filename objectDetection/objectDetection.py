@@ -3,10 +3,10 @@ import numpy as np
 from picamera2 import Picamera2, Preview
 
 def setupModel():
-    net = cv2.dnn.readNet('yolov3-tiny.cfg', 'yolov3-tiny.weights')
+    net = cv2.dnn.readNet('/home/raspberry/SensED/objectDetection/yolov3-tiny.cfg', '/home/raspberry/SensED/objectDetection/yolov3-tiny.weights')
 
     classes = []
-    with open("coco.names", "r") as f:
+    with open("/home/raspberry/SensED/objectDetection/coco.names", "r") as f:
         classes = f.read().splitlines()
 
     return net, classes
@@ -57,6 +57,10 @@ def detectObject(img, net, classes):
                 #boxes.append([x, y, w, h])
                 #confidences.append((float(confidence)))
                 #class_ids.append(class_id)
+            else:
+                center_x = -1
+                center_y = -1
+
     return center_x, center_y
     #indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.2, 0.4)
 

@@ -35,7 +35,7 @@ picamRight.start()
 
 stereo = depthProcessing.produceStereo()
 
-#net, classes = objectDetection.setupModel()
+net, classes = objectDetection.setupModel()
 
 #i2c, drv = MotorOutputDemo1.initMotorVars()
 
@@ -96,7 +96,7 @@ while True:
     dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
-    #center_x, center_y = objectDetection.detectObject(imgLeft, net, classes)
+    center_x, center_y = objectDetection.detectObject(imgLeft, net, classes)
     
     
     
