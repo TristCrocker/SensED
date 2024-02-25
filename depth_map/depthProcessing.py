@@ -10,8 +10,8 @@ def produceStereo():
 
 # Produce disparity map of images
 def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
-    sadWindow = 6
-    numDisparities = sadWindow * 16
+    
+    numDisparities = 96
     blockSize = 11
     '''preFilterType = 1
     preFilterSize = 1*2 + 5
@@ -36,9 +36,11 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     stereo.setMinDisparity(minDisparity)'''
     stereo.setNumDisparities(numDisparities)
     stereo.setMinDisparity(0)
+    stereo.setSpeckleRange(1)
+    stereo.setSpeckleWindowSize(200)
     stereo.setBlockSize(blockSize)
-    stereo.setP1(8 * 3 * sadWindow ** 2)
-    stereo.setP2(32 * 3 * sadWindow ** 2)
+    stereo.setP1(8 * 3 * blockSize ** 2)
+    stereo.setP2(32 * 3 * blockSize ** 2)
 
     # Compute disparity map and convert to 32 bit floating point
     disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)

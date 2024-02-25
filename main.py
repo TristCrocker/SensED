@@ -89,6 +89,9 @@ while True:
     grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
     grayFrameL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
     
+    
+    
+    
     cv.imshow("Right", grayFrameR)
     cv.imshow("Left", grayFrameL)
 
@@ -100,7 +103,7 @@ while True:
     map_visualisation.display_disparity(dispMap, "Disparity Map")
 
     dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
-    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)), "Disparity Down-sampled Map")
+    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
     center_x, center_y = objectDetection.detectObject(objImage, net, classes)
     

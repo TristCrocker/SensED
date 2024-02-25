@@ -82,13 +82,13 @@ newCameraMatrixR, roi_R = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, (wi
 ############## sv calibration #####################################################
 
 flags = 0
-#flags |= cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
-flags |= cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1|cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6|cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
+flags |= cv.CALIB_FIX_INTRINSIC | cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1 | cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6|cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
+#flags |= cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1|cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6|cv.CALIB_RATIONAL_MODEL|cv.CALIB_USE_INTRINSIC_GUESS|cv.CALIB_FIX_PRINCIPAL_POINT
 criteria_stereo = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, imgpointsL, imgpointsR, newCameraMatrixL,distL, newCameraMatrixR, distR, grayL.shape[::-1], criteria_stereo, flags) #??
 
 #  rectification #
-rectifyScale =1
+rectifyScale = 1
 rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL,newCameraMatrixR, distR, grayL.shape[::-1],rot,trans,rectifyScale,(0,0))
 np.savetxt('projMatR.txt', projMatrixR)
 np.savetxt('projMatL.txt', projMatrixL)
