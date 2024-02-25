@@ -10,6 +10,7 @@ import time
 import keyboard
 import math
 from datetime import datetime
+from objectDetection import objectDetection
 
 
 #Retrieve calibration data
@@ -33,6 +34,8 @@ picamRight.start()
 
 
 stereo = depthProcessing.produceStereo()
+
+#net, classes = objectDetection.setupModel()
 
 #i2c, drv = MotorOutputDemo1.initMotorVars()
 
@@ -58,41 +61,43 @@ sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
 #Real time loop
 while True:
-	
-	t1 = datetime.now()
-	time_passed = (t1-t0)
-	print("Average FPS: " + str(1/time_passed.total_seconds()))
-	t0 = t1
 
-	imgLeft = picamLeft.capture_array("main")
-	imgRight = picamRight.capture_array("main")
-	
-	if keyboard.is_pressed('q'):
-		#drv.realtime_value = 0
-		break
+    t1 = datetime.now()
+    time_passed = (t1-t0)
+    print("Average FPS: " + str(1/time_passed.total_seconds()))
+    t0 = t1
+
+    imgLeft = picamLeft.capture_array("main")
+    imgRight = picamRight.capture_array("main")
+
+    if keyboard.is_pressed('q'):
+        #drv.realtime_value = 0
+        break
 
         
     #Undistort and rectify
-	frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
-	frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+    frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+    frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
 
     #Convert frames to grayscale
-	grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
-	grayFrameL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
+    grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
+    grayFrameL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
     
-	cv.imshow("Right", grayFrameR)
-	cv.imshow("Left", grayFrameL)
+    cv.imshow("Right", grayFrameR)
+    cv.imshow("Left", grayFrameL)
 
     #stereo, minDisparity, numDisparities = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
     
     # Create and display full resolution disparity map
-	dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
-	dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
-	map_visualisation.display_disparity(dispMap, "Disparity Map")
+    dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
+    dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
+    map_visualisation.display_disparity(dispMap, "Disparity Map")
 
-	dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
-	map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)), "Disparity Down-sampled Map")
-	depthMap = depthProcessing.produceDepthMap(dispMapDown)
+    dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
+    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)), "Disparity Down-sampled Map")
+    depthMap = depthProcessing.produceDepthMap(dispMapDown)
+    #center_x, center_y = objectDetection.detectObject(imgLeft, net, classes)
+    
     
     
     #kernel = np.array([1.8,2.0,1.0])

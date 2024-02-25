@@ -4,7 +4,7 @@ import cv2 as cv
 
 def produceStereo():
     # Stereo matching with block match algorithm
-    stereo = cv.StereoBM_create()
+    stereo = cv.StereoSGBM_create(mode=cv.STEREO_SGBM_MODE_SGBM_3WAY)
     return stereo
 
 
@@ -37,8 +37,8 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     stereo.setNumDisparities(numDisparities)
     stereo.setMinDisparity(0)
     stereo.setBlockSize(blockSize)
-    #stereo.setP1(8 * 3 * sadWindow ** 2)
-    #stereo.setP2(32 * 3 * sadWindow ** 2)
+    stereo.setP1(8 * 3 * sadWindow ** 2)
+    stereo.setP2(32 * 3 * sadWindow ** 2)
 
     # Compute disparity map and convert to 32 bit floating point
     disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)
