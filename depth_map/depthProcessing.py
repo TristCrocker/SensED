@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 
+from depth_map import map_visualisation
+
 
 def produceStereo():
     # Stereo matching with block match algorithm
@@ -108,4 +110,15 @@ def produceParameterSliders(stereo, window):
 
     return stereo, minDisparity, numDisparities
 
+def depth_processing(stereo, frameL, frameR):
+    # Create and display full resolution disparity map
+    dispMap, matcher = produceDisparityMap(stereo, frameL, frameR)
+    dispMap = map_visualisation.filter_map(dispMap, frameL, matcher, frameR)
+    map_visualisation.display_disparity(dispMap, "Disparity Map")
 
+    dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
+    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)),
+                                        "Disparity Down-sampled Map")
+    depthMap = produceDepthMap(dispMapDown)
+
+    return depthMap

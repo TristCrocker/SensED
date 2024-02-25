@@ -1,9 +1,15 @@
-# Real time implementation in here
+#Real time implementation in here
 import math
+from datetime import datetime
+import multiprocessing
+
 import cv2 as cv
+import keyboard
+from picamera2 import Picamera2, Preview
 
 from depth_map import depthProcessing, map_visualisation
-from motor_output import MotorOutputDemo1
+from motor_output import motor_output
+from object_detection import objectDetection
 
 # Retrieve calibration data
 cvFile = cv.FileStorage()
@@ -14,13 +20,19 @@ stereoMapL_y = cvFile.getNode('StereoMapL_y').mat()
 stereoMapR_x = cvFile.getNode('StereoMapR_x').mat()
 stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 
-# Open cameras
-capL = cv.VideoCapture(2)
-capR = cv.VideoCapture(0)
+#Open cameras
+picamLeft = Picamera2(0)
+picamRight = Picamera2(1)
+
+picamLeft.start_preview(Preview.QTGL)
+picamRight.start_preview(Preview.QTGL)
+
+picamLeft.start()
+picamRight.start()
 
 stereo = depthProcessing.produceStereo()
 
-i2c, drv = MotorOutputDemo1.initMotorVars()
+net, classes = objectDetection.setupModel()
 
 '''
 def nothing(x):
@@ -41,26 +53,24 @@ cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)
 
 # Sigmoid depth map normalizing function
 sigmoid = lambda x: 1 / (1 + math.e ** (1 * (x / 1000) - 3))
-
+t0 = datetime.now()
 # Real time loop
-while capL.isOpened() and capR.isOpened():
+while True:
 
-    successL, frameL = capL.read()
-    successR, frameR = capR.read()
+    t1 = datetime.now()
+    time_passed = (t1 - t0)
+    print("Average FPS: " + str(1 / time_passed.total_seconds()))
+    t0 = t1
 
-    frameL = cv.resize(frameL, (640, 480))
-    frameR = cv.resize(frameR, (640, 480))
+    imgLeft = picamLeft.capture_array("main")
+    imgRight = picamRight.capture_array("main")
 
-    # Waits 1ms for a key to be pressed, then stores the key that is pressed
-    key = cv.waitKey(1)
-    # If the pressed key is q then the program quits
-    if key == ord('q'):
-        drv.realtime_value = 0
+    if keyboard.is_pressed('q'):
         break
 
     # Undistort and rectify
-    frameR = cv.remap(frameR, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
-    frameL = cv.remap(frameL, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+    frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+    frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
 
     # Convert frames to grayscale
     grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
@@ -71,20 +81,18 @@ while capL.isOpened() and capR.isOpened():
 
     # stereo, minDisparity, numDisparities = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
 
-    # Create and display full resolution disparity map
-    dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
-    dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
-    map_visualisation.display_disparity(dispMap, "Disparity Map")
+    depth_process = multiprocessing.Process(target=depthProcessing.depth_processing, args=[stereo, grayFrameL, grayFrameR])
+    object_process = multiprocessing.Process(target=objectDetection.detectObject, args=[imgLeft, net, classes])
 
-    dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
-    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (480, 640)),
-                                        "Disparity Down-sampled Map")
-    depthMap = depthProcessing.produceDepthMap(dispMapDown)
+    depth_process.start()
+    object_process.start()
 
-    MotorOutputDemo1.motorOutput(depthMap, i2c, drv, a=1, c=3)
+    depth_process.join()
+    object_process.join()
 
-capL.release()
-capR.release()
+    controller = motor_output.PCA9685_Controller()
+    # TODO: create array with intensity and pattern for motors
+    controller.control_motors()
+
 drv.realtime_value = 0
-drv.mode = adafruit_drv2605.MODE_INTTRIG
 cv.destroyAllWindows()
