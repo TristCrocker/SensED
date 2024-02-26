@@ -12,6 +12,8 @@ import math
 from datetime import datetime
 from objectDetection import objectDetection
 
+#Parameter sliders
+win = cv.namedWindow('Disparity Map')
 
 #Retrieve calibration data
 cvFile = cv.FileStorage()
@@ -23,19 +25,21 @@ stereoMapR_x = cvFile.getNode('StereoMapR_x').mat()
 stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 
 #Open cameras
+
 picamLeft = Picamera2(0)
 picamRight = Picamera2(1)
 
-#camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
-#camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
-#picamLeft.configure(camera_configL)
-#picamRight.configure(camera_configR)
+camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
+camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
+picamLeft.configure(camera_configL)
+picamRight.configure(camera_configR)
 
-picamLeft.start_preview(Preview.QTGL)
-picamRight.start_preview(Preview.QTGL)
+picamLeft.start_preview()
+picamRight.start_preview()
 
 picamLeft.start()
 picamRight.start()
+
 
 
 stereo = depthProcessing.produceStereo()
@@ -45,10 +49,10 @@ net, classes = objectDetection.setupModel()
 
 #i2c, drv = MotorOutputDemo1.initMotorVars()
 
-'''
 def nothing(x):
     pass
-
+    
+'''
 cv.createTrackbar('numDisparities', "Disparity Map",1,17,nothing)
 cv.createTrackbar('blockSize', "Disparity Map",5,50,nothing)
 cv.createTrackbar('preFilterType', "Disparity Map",1,1,nothing)
@@ -59,25 +63,28 @@ cv.createTrackbar('uniqueness', "Disparity Map",15,100,nothing)
 cv.createTrackbar('speckleRange', "Disparity Map",0,100,nothing)
 cv.createTrackbar('speckleWindowSize', "Disparity Map",3,25,nothing)
 cv.createTrackbar('disp12MaxDiff', "Disparity Map",5,25,nothing)
-cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)
-'''
+cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)'''
+
 
 #Sigmoid depth map nromalizing function
 sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
 #Real time loop
 while True:
+
     imgLeft = picamLeft.capture_array("main")
+    
     imgRight = picamRight.capture_array("main")
     
     try:
+		
         x,y = objectDetection.detectObject(imgLeft, net , classes)
     except:
         x = -1
         y = -1
     print(x,y)
     
-
+    
     t1 = datetime.now()
     time_passed = (t1-t0)
     print("Average FPS: " + str(1/time_passed.total_seconds()))
@@ -97,31 +104,29 @@ while True:
     grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
     grayFrameL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
     
-    
-    
-    
-    cv.imshow("Right", grayFrameR)
-    cv.imshow("Left", grayFrameL)
+    #cv.imshow("Right", grayFrameR)
+    #cv.imshow("Left", grayFrameL)
 
     #stereo, minDisparity, numDisparities = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
     
     # Create and display full resolution disparity map
     dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
-    dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
+    dispMap = cv.GaussianBlur(dispMap,(5,5),cv.BORDER_DEFAULT)
+    #dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
     map_visualisation.display_disparity(dispMap, "Disparity Map")
-
+    
+    #stereo, minDis, maxDisp = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
+    
+    
+    
     dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
-    
-    
-    
     
     #kernel = np.array([1.8,2.0,1.0])
     
     #map_visualisation.display_disparity(dispMapDown, "Disparity Map")
     #map_visualisation.display_disparity(dispMapGaus, "Disp Map Real")
-    
     
     
     

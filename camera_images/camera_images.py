@@ -5,8 +5,8 @@ import time
 
 picamLeft = Picamera2(0)
 picamRight = Picamera2(1)
-camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
-camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
+camera_configL = picamLeft.create_still_configuration(main={"size": (1280, 960)}, lores={"size": (1280, 960)}, display="lores", encode='main')
+camera_configR = picamRight.create_still_configuration(main={"size": (1280, 960)}, lores={"size": (1280, 960)}, display="lores", encode='main')
 picamLeft.configure(camera_configL)
 picamRight.configure(camera_configR)
 
@@ -32,4 +32,3 @@ while True:
 	num+=1
 	
 	
-

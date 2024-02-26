@@ -5,15 +5,12 @@ import cv2 as cv
 def produceStereo():
     # Stereo matching with block match algorithm
     stereo = cv.StereoSGBM_create(mode=cv.STEREO_SGBM_MODE_SGBM_3WAY)
-    return stereo
-
-
-# Produce disparity map of images
-def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     
     numDisparities = 96
     blockSize = 11
-    '''preFilterType = 1
+    minDisparity = 0
+    '''
+    preFilterType = 1
     preFilterSize = 1*2 + 5
     preFilterCap = 31
     textureThreshold = 5
@@ -32,8 +29,8 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     stereo.setUniquenessRatio(uniquenessRatio)
     stereo.setSpeckleRange(speckleRange)
     stereo.setSpeckleWindowSize(speckleWindowSize)
-    stereo.setDisp12MaxDiff(disp12MaxDiff)
-    stereo.setMinDisparity(minDisparity)'''
+    stereo.setDisp12MaxDiff(disp12MaxDiff)'''
+    stereo.setMinDisparity(minDisparity)
     stereo.setNumDisparities(numDisparities)
     stereo.setMinDisparity(0)
     stereo.setSpeckleRange(1)
@@ -41,6 +38,13 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     stereo.setBlockSize(blockSize)
     stereo.setP1(8 * 3 * blockSize ** 2)
     stereo.setP2(32 * 3 * blockSize ** 2)
+    return stereo
+
+
+# Produce disparity map of images
+def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
+
+    
 
     # Compute disparity map and convert to 32 bit floating point
     disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)
@@ -84,24 +88,24 @@ def decomposeProjectionMatrix(matrix):
 
 
 def produceParameterSliders(stereo, window):
-    numDisparities = cv.getTrackbarPos('numDisparities', window) * 16
-    blockSize = cv.getTrackbarPos('blockSize', window) * 2 + 5
-    preFilterType = cv.getTrackbarPos('preFilterType', window)
-    preFilterSize = cv.getTrackbarPos('preFilterSize', window) * 2 + 5
+    numDisparities = cv.getTrackbarPos('numDisparities', window)
+    blockSize = cv.getTrackbarPos('blockSize', window)
+    #preFilterType = cv.getTrackbarPos('preFilterType', window)
+    #preFilterSize = cv.getTrackbarPos('preFilterSize', window) * 2 + 5
     preFilterCap = cv.getTrackbarPos('preFilterCap', window)
-    textureThreshold = cv.getTrackbarPos('teztureThreshold', window)
+    #textureThreshold = cv.getTrackbarPos('teztureThreshold', window)
     uniquenessRatio = cv.getTrackbarPos('uniqueness', window)
     speckleRange = cv.getTrackbarPos('speckleRange', window)
-    speckleWindowSize = cv.getTrackbarPos('speckleWindowSize', window) * 2
+    speckleWindowSize = cv.getTrackbarPos('speckleWindowSize', window)
     disp12MaxDiff = cv.getTrackbarPos('disp12MaxDiff', window)
     minDisparity = cv.getTrackbarPos('minDisparity', window)
 
     stereo.setNumDisparities(numDisparities)
     stereo.setBlockSize(blockSize)
-    stereo.setPreFilterType(preFilterType)
-    stereo.setPreFilterSize(preFilterSize)
+    #stereo.setPreFilterType(preFilterType)
+    #stereo.setPreFilterSize(preFilterSize)
     stereo.setPreFilterCap(preFilterCap)
-    stereo.setTextureThreshold(textureThreshold)
+    #stereo.setTextureThreshold(textureThreshold)
     stereo.setUniquenessRatio(uniquenessRatio)
     stereo.setSpeckleRange(speckleRange)
     stereo.setSpeckleWindowSize(speckleWindowSize)
