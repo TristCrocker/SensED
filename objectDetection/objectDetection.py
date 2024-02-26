@@ -11,11 +11,6 @@ def setupModel():
 
     return net, classes
 
-picamLeft = Picamera2(0)
-
-picamLeft.start_preview(Preview.QTGL)
-
-picamLeft.start()
 
 #font = cv2.FONT_HERSHEY_PLAIN
 #colors = np.random.uniform(0, 255, size=(100, 3))
@@ -78,12 +73,12 @@ def detectObject(img, net, classes):
 
 #cap.release()
 #cv2.destroyAllWindows()
-net, classes = setupModel()
-while True:
-	img = picamLeft.capture_array('main')
-	try:
-		x,y = detectObject(img, net , classes)
-	except:
-		x = -1
-		y = -1	
-	print(x,y)
+#net, classes = setupModel()
+#while True:
+#	img = picamLeft.capture_array('main')
+#	try:
+#		x,y = detectObject(img, net , classes)
+#	except:
+#		x = -1
+#		y = -1	
+#	print(x,y)

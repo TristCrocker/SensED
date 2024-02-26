@@ -32,7 +32,7 @@ picamRight = Picamera2(1)
 #picamRight.configure(camera_configR)
 
 picamLeft.start_preview(Preview.QTGL)
-picamRight.start_preview()
+picamRight.start_preview(Preview.QTGL)
 
 picamLeft.start()
 picamRight.start()
@@ -41,6 +41,7 @@ picamRight.start()
 stereo = depthProcessing.produceStereo()
 
 net, classes = objectDetection.setupModel()
+
 
 #i2c, drv = MotorOutputDemo1.initMotorVars()
 
@@ -66,8 +67,15 @@ sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
 #Real time loop
 while True:
+    imgLeft = picamLeft.capture_array("main")
+    imgRight = picamRight.capture_array("main")
     
-    img = picamLeft.capture_array('main')
+    try:
+        x,y = objectDetection.detectObject(imgLeft, net , classes)
+    except:
+        x = -1
+        y = -1
+    print(x,y)
     
 
     t1 = datetime.now()
@@ -75,12 +83,7 @@ while True:
     print("Average FPS: " + str(1/time_passed.total_seconds()))
     t0 = t1
 
-    imgLeft = picamLeft.capture_array("main")
     
-    
-    
-    imgRight = picamRight.capture_array("main")
-
     if keyboard.is_pressed('q'):
         #drv.realtime_value = 0
         break
@@ -111,12 +114,7 @@ while True:
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
     
-    try:
-        x,y = objectDetection.detectObject(img, net , classes)
-    except:
-        x = -1
-        y = -1
-    print(x,y)
+    
     
     
     #kernel = np.array([1.8,2.0,1.0])
