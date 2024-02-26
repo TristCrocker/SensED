@@ -11,11 +11,11 @@ def setupModel():
 
     return net, classes
 
-#picamLeft = Picamera2(0)
+picamLeft = Picamera2(0)
 
-#picamLeft.start_preview(Preview.QTGL)
+picamLeft.start_preview(Preview.QTGL)
 
-#picamLeft.start()
+picamLeft.start()
 
 #font = cv2.FONT_HERSHEY_PLAIN
 #colors = np.random.uniform(0, 255, size=(100, 3))
@@ -24,8 +24,8 @@ def detectObject(img, net, classes):
 #while True:
     #img = picamLeft.capture_array("main")
     img = cv2.resize(img, (320,320))
-    #b, g, r, a = cv2.split(img)
-    #img = cv2.merge([r, g, b])
+    b, g, r, a = cv2.split(img)
+    img = cv2.merge([r, g, b])
     
     height, width, _ = img.shape
     
@@ -57,9 +57,7 @@ def detectObject(img, net, classes):
                 #boxes.append([x, y, w, h])
                 #confidences.append((float(confidence)))
                 #class_ids.append(class_id)
-            else:
-                center_x = -1
-                center_y = -1
+            
 
     return center_x, center_y
     #indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.2, 0.4)
@@ -80,3 +78,12 @@ def detectObject(img, net, classes):
 
 #cap.release()
 #cv2.destroyAllWindows()
+net, classes = setupModel()
+while True:
+	img = picamLeft.capture_array('main')
+	try:
+		x,y = detectObject(img, net , classes)
+	except:
+		x = -1
+		y = -1	
+	print(x,y)

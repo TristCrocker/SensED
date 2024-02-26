@@ -26,12 +26,12 @@ stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 picamLeft = Picamera2(0)
 picamRight = Picamera2(1)
 
-camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
-camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
-picamLeft.configure(camera_configL)
-picamRight.configure(camera_configR)
+#camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
+#camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="lores")
+#picamLeft.configure(camera_configL)
+#picamRight.configure(camera_configR)
 
-picamLeft.start_preview()
+picamLeft.start_preview(Preview.QTGL)
 picamRight.start_preview()
 
 picamLeft.start()
@@ -66,6 +66,9 @@ sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
 #Real time loop
 while True:
+    
+    img = picamLeft.capture_array('main')
+    
 
     t1 = datetime.now()
     time_passed = (t1-t0)
@@ -73,7 +76,9 @@ while True:
     t0 = t1
 
     imgLeft = picamLeft.capture_array("main")
-    objImage = imgLeft
+    
+    
+    
     imgRight = picamRight.capture_array("main")
 
     if keyboard.is_pressed('q'):
@@ -105,8 +110,13 @@ while True:
     dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown)
-    center_x, center_y = objectDetection.detectObject(objImage, net, classes)
     
+    try:
+        x,y = objectDetection.detectObject(img, net , classes)
+    except:
+        x = -1
+        y = -1
+    print(x,y)
     
     
     #kernel = np.array([1.8,2.0,1.0])
