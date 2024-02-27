@@ -49,6 +49,7 @@ def filter_map(left_disp, left_image, left_matcher, right_image):
     # We need the right disparity map for WLS filter
     wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
     right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+    left_disp = left_matcher.compute(left_image, right_image)
     right_disp = right_matcher.compute(right_image, left_image)
     wls_filter.setLambda(lmbda)
     wls_filter.setSigmaColor(sigma)

@@ -12,6 +12,9 @@ import math
 from datetime import datetime
 from objectDetection import objectDetection
 
+projMatR = np.loadtxt('projMatR.txt')
+projMatL = np.loadtxt('projMatL.txt')
+
 #Parameter sliders
 win = cv.namedWindow('Disparity Map')
 
@@ -77,7 +80,6 @@ while True:
     imgRight = picamRight.capture_array("main")
     
     try:
-		
         x,y = objectDetection.detectObject(imgLeft, net , classes)
     except:
         x = -1
@@ -111,17 +113,15 @@ while True:
     
     # Create and display full resolution disparity map
     dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
-    dispMap = cv.GaussianBlur(dispMap,(5,5),cv.BORDER_DEFAULT)
-    #dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
+    #dispMap = cv.GaussianBlur(dispMap,(5,5),cv.BORDER_DEFAULT)
+    dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
     map_visualisation.display_disparity(dispMap, "Disparity Map")
     
     #stereo, minDis, maxDisp = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
     
-    
-    
-    dispMapDown = map_visualisation.downsample_map(dispMap, (8, 8))
+    dispMapDown = map_visualisation.downsample_map(dispMap, (4, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
-    depthMap = depthProcessing.produceDepthMap(dispMapDown)
+    depthMap = depthProcessing.produceDepthMap(dispMapDown, projMatR, projMatL)
     
     #kernel = np.array([1.8,2.0,1.0])
     
@@ -142,7 +142,9 @@ while True:
     #index = np.unravel_index(depthMap.argmax(), depthMap.shape)
     #print(depthMap[index[0], index[1]])
     
-    #plt.imshow(depthMap, cmap="hot", interpolation='nearest')
+    #depthMapLarge = depthProcessing.produceDepthMap(dispMap, projMatR, projMatL)
+    
+    #plt.imshow(depthMapLarge, cmap="hot", interpolation='nearest')
     #plt.show()
     
 

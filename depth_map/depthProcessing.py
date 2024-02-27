@@ -57,10 +57,9 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
 
 # Produce depth map from disparity map (Using camera parameters from calibration)
 # baseline is distance between camera
-def produceDepthMap(disparityMap):
+def produceDepthMap(disparityMap, projMatR, projMatL):
     # Retrieve projection matrices
-    projMatR = np.loadtxt('projMatR.txt')
-    projMatL = np.loadtxt('projMatL.txt')
+    
 
     # Decompose projection matrices
     kLeft, rLeft, tLeft = decomposeProjectionMatrix(projMatL)
