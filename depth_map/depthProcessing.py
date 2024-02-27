@@ -49,7 +49,7 @@ def produceDisparityMap(stereo, leftRectifiedImage, rightRectifiedImage):
     # Compute disparity map and convert to 32 bit floating point
     disparity = stereo.compute(leftRectifiedImage, rightRectifiedImage)
 
-    disparity = disparity.astype(np.float32) / 16.0
+    #disparity = disparity.astype(np.float32) / 16.0
     # disparity = (disparity/16.0 - minDisparity)/numDisparities
 
     return disparity, stereo

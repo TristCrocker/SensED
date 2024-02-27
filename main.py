@@ -73,6 +73,7 @@ cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)'''
 sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
 #Real time loop
+
 while True:
 
     imgLeft = picamLeft.capture_array("main")
@@ -119,10 +120,32 @@ while True:
     
     #stereo, minDis, maxDisp = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
     
-    dispMapDown = map_visualisation.downsample_map(dispMap, (4, 8))
+    dispMapDown, block_size = map_visualisation.downsample_map(dispMap, (4, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown, projMatR, projMatL)
     
+    #Calculate downsampled x and y for obj detection
+    if x != -1:
+        x = int(x/block_size[1])
+
+    if y != -1:
+        y = int(y/block_size[0])
+
+    finalArray = np.zeros((8, 4, 2))
+    for row in range(len(depthMap[: ,0])):
+        for col in range(len(depthMap[0 ,:])):
+            intensity = depthMap[row, col]
+            pattern = -1
+            if x != -1 and y != -1:
+                pattern = 1
+            finalArray[row, col, 0] = intensity
+            finalArray[row, col, 1] = pattern
+    print(finalArray)
+
+    #controller = motor_output.PCA9685_Controller()
+    #controller.control_motors(depthMap)
+
+
     #kernel = np.array([1.8,2.0,1.0])
     
     #map_visualisation.display_disparity(dispMapDown, "Disparity Map")
@@ -155,8 +178,7 @@ while True:
 
     #Produce depth for motor input
     # depthMap = depthProcessing.produceDepthMap(downsampledMap, 1, 1)
-capL.release()
-capR.release()
+
 drv.realtime_value = 0
 #drv.mode = adafruit_drv2605.MODE_INTTRIG
 cv.destroyAllWindows()
