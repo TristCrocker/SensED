@@ -6,7 +6,7 @@ def produceStereo():
     # Stereo matching with block match algorithm
     stereo = cv.StereoSGBM_create(mode=cv.STEREO_SGBM_MODE_SGBM_3WAY)
     
-    numDisparities = 96
+    numDisparities = 80 #change for better fps
     blockSize = 11
     minDisparity = 0
     '''

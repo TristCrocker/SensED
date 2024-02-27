@@ -3,6 +3,7 @@ from depth_map import depthProcessing
 from depth_map import map_visualisation
 from picamera2 import Picamera2, Preview
 #import MotorOutputDemo1
+import motor_output
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
@@ -85,7 +86,7 @@ while True:
     except:
         x = -1
         y = -1
-    print(x,y)
+    #print(x,y)
     
     
     t1 = datetime.now()
@@ -93,12 +94,10 @@ while True:
     print("Average FPS: " + str(1/time_passed.total_seconds()))
     t0 = t1
 
-    
     if keyboard.is_pressed('q'):
         #drv.realtime_value = 0
         break
 
-        
     #Undistort and rectify
     frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
     frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
@@ -120,7 +119,7 @@ while True:
     
     #stereo, minDis, maxDisp = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
     
-    dispMapDown, block_size = map_visualisation.downsample_map(dispMap, (4, 8))
+    dispMapDown, block_size = map_visualisation.downsample_map(dispMap, (4, 4))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown, projMatR, projMatL)
     
@@ -130,20 +129,21 @@ while True:
 
     if y != -1:
         y = int(y/block_size[0])
-
-    finalArray = np.zeros((8, 4, 2))
+    print(y,x)    
+    print('Position', y,x)
+    finalArray = np.zeros((4, 4, 2))
     for row in range(len(depthMap[: ,0])):
         for col in range(len(depthMap[0 ,:])):
             intensity = depthMap[row, col]
             pattern = -1
-            if x != -1 and y != -1:
-                pattern = 1
+            if (x != -1 and y != -1) and (y == row and x == col):
+                pattern = 2
             finalArray[row, col, 0] = intensity
             finalArray[row, col, 1] = pattern
-    print(finalArray)
+    #print(finalArray)
 
-    #controller = motor_output.PCA9685_Controller()
-    #controller.control_motors(depthMap)
+    controller = motor_output.PCA9685_Controller()
+    controller.control_motors(finalArray)
 
 
     #kernel = np.array([1.8,2.0,1.0])
