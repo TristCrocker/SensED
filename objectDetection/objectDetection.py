@@ -17,17 +17,17 @@ picamLeft = Picamera2(0)
 picamLeft.start_preview()
 picamLeft.start()
 '''
-def detectObject(img, net, classes):
+def detectObject(queue, img, net, classes):
 	while True:
 		#img = picamLeft.capture_array("main")
-		img = cv2.resize(img, (320,320))
+		img = cv2.resize(img, (640,480))
 		####Merging doesnt work with main
 		#b, g, r, a = cv2.split(img)
 		#img = cv2.merge([r, g, b])
 		
 		height, width, _ = img.shape
 		
-		blob = cv2.dnn.blobFromImage(img, 1/255, (320, 320), (0,0,0), swapRB=True, crop=False)
+		blob = cv2.dnn.blobFromImage(img, 1/255, (640, 480), (0,0,0), swapRB=True, crop=False)
 		net.setInput(blob)
 		output_layers_names = net.getUnconnectedOutLayersNames()
 		layerOutputs = net.forward(output_layers_names)
@@ -35,6 +35,8 @@ def detectObject(img, net, classes):
 		boxes = []
 		confidences = []
 		class_ids = []
+		center_x = -1
+		center_y = -1
 
 		for output in layerOutputs:
 			for detection in output:
@@ -56,8 +58,10 @@ def detectObject(img, net, classes):
 					#confidences.append((float(confidence)))
 					#class_ids.append(class_id)
 				
-
-		return center_x, center_y
+		queue.put((center_x, center_y))
+		return (center_x, center_y)
+		
+		
 		'''indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.2, 0.4)
 
 		if len(indexes)>0:
@@ -88,3 +92,7 @@ while True:
 		y = -1	
 	print(x,y)
 '''
+
+
+#def calculateDownSampleCoordinate():
+

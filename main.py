@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import time
 import keyboard
 import math
+import multiprocessing
 from datetime import datetime
 from objectDetection import objectDetection
 
@@ -55,6 +56,24 @@ net, classes = objectDetection.setupModel()
 def nothing(x):
     pass
     
+def depth_processing(queue, matcher, imgLeft, imgRight):
+	#Undistort and rectify
+    frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+    frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
+
+    #Convert frames to grayscale
+    grayFrameR = cv.cvtColor(frameR, cv.COLOR_BGR2GRAY)
+    grayFrameL = cv.cvtColor(frameL, cv.COLOR_BGR2GRAY)
+    
+    # Create and display full resolution disparity map
+    dispMap, matcher = depthProcessing.produceDisparityMap(stereo, grayFrameL, grayFrameR)
+    #dispMap = cv.GaussianBlur(dispMap,(5,5),cv.BORDER_DEFAULT)
+    dispMap = map_visualisation.filter_map(dispMap, grayFrameL, matcher, grayFrameR)
+    
+    queue.put(dispMap)
+    
+    return dispMap
+    
 '''
 cv.createTrackbar('numDisparities', "Disparity Map",1,17,nothing)
 cv.createTrackbar('blockSize', "Disparity Map",5,50,nothing)
@@ -72,21 +91,39 @@ cv.createTrackbar('minDisparity', "Disparity Map",5,25,nothing)'''
 #Sigmoid depth map nromalizing function
 sigmoid = lambda x:1/(1+math.e**(1*(x/1000)-3))
 t0 = datetime.now()
+
+queue1 = multiprocessing.Queue()
+queue2 = multiprocessing.Queue()
+
 #Real time loop
 
 while True:
-
     imgLeft = picamLeft.capture_array("main")
-    
     imgRight = picamRight.capture_array("main")
     
+    depth_process = multiprocessing.Process(target=depth_processing, args=[queue1, stereo, imgLeft, imgRight])
+    depth_process.start()
+    
     try:
-        x,y = objectDetection.detectObject(imgLeft, net , classes)
+        #x,y = objectDetection.detectObject(imgLeft, net , classes)
+        object_process = multiprocessing.Process(target=objectDetection.detectObject, args=[queue2, imgLeft, net, classes])
+        object_process.start()
     except:
         x = -1
         y = -1
-    print(x,y)
     
+    dispMap = queue1.get()
+    x, y = queue2.get()
+    depth_process.join()
+    object_process.join()
+    
+    map_visualisation.display_disparity(dispMap, "Disparity Map")
+    
+    #stereo, minDis, maxDisp = depthProcessing.produceParameterSliders(stereo, "Disparity Map")
+    
+    dispMapDown, block_size = map_visualisation.downsample_map(dispMap, (4, 8))
+    map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
+    depthMap = depthProcessing.produceDepthMap(dispMapDown, projMatR, projMatL)
     
     t1 = datetime.now()
     time_passed = (t1-t0)
@@ -98,7 +135,7 @@ while True:
         #drv.realtime_value = 0
         break
 
-        
+    '''
     #Undistort and rectify
     frameR = cv.remap(imgRight, stereoMapR_x, stereoMapR_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
     frameL = cv.remap(imgLeft, stereoMapL_x, stereoMapL_y, cv.INTER_LANCZOS4, cv.BORDER_CONSTANT, 0)
@@ -123,6 +160,7 @@ while True:
     dispMapDown, block_size = map_visualisation.downsample_map(dispMap, (4, 8))
     map_visualisation.display_disparity(map_visualisation.upscale_map(dispMapDown, (640, 480)), "Disparity Down-sampled Map")
     depthMap = depthProcessing.produceDepthMap(dispMapDown, projMatR, projMatL)
+    '''
     
     #Calculate downsampled x and y for obj detection
     if x != -1:
@@ -140,7 +178,7 @@ while True:
                 pattern = 1
             finalArray[row, col, 0] = intensity
             finalArray[row, col, 1] = pattern
-    print(finalArray)
+
 
     #controller = motor_output.PCA9685_Controller()
     #controller.control_motors(depthMap)
