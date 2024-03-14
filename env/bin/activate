@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/tristcrocker/Documents/Work/SDP/SensED/env"
+VIRTUAL_ENV="/home/raspberry/SensED/env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

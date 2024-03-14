@@ -1,27 +1,38 @@
-import cv2 
+from picamera2 import Picamera2, Preview
+import time
+import cv2
+import numpy as np
+import os
+from datetime import datetime
+import keyboard
 
-cap = cv2.VideoCapture(0)
-cap2 = cv2.VideoCapture(2) # change?
+picamLeft = Picamera2(0)
+picamRight = Picamera2(1)
+
+picamLeft.start_preview(Preview.QTGL)
+picamRight.start_preview(Preview.QTGL)
+
+picamLeft.start()
+picamRight.start()
+
+
 num = 0
 
-while cap.isOpened():
-    succes1, img = cap.read()
-    succes2, img2 =cap2.read()
+while True:
+	
+	imgLeft = picamLeft.capture_array("main")
+	imgRight = picamRight.capture_array("main")
+	
+	if keyboard.is_pressed('q'):
+		break
+	elif keyboard.is_pressed('s'):
+		cv2.imwrite("images/stereoLeft/imageL" + str(num) + ".png", imgLeft)
+		cv2.imwrite("images/stereoRight/imageR" + str(num) + ".png", imgRight)
+		print("Images saved")
+		num+=1
 
-    k = cv2.waitKey(5)
+picamLeft.stop()
+picamRight.stop()
+picamLeft.stop_preview()
+picamRight.stop_preview()
 
-    if k ==27:
-        break
-    elif k == ord('s'):
-        cv2.imwrite('images/stereoLeft/imageL' + str(num) + '.png', img)
-        cv2.imwrite('images/stereoRight/imageR' + str(num) + '.png', img2)
-        print("images saved!")
-        num+=1
-    cv2.imshow('Img 1', img)
-    cv2.imshow('Img 2', img2)
-
-cap.release()
-cap2.release()
-
-cv2.destroyAllWindows()
-        

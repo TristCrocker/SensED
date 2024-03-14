@@ -8,7 +8,7 @@ import glob
 ################ FIND CHESSBOARD CORNERS - OBJECT POINTS AND IMAGE POINTS #############################
 
 chessboardSize = (7,4)
-frameSize = (1280,960) #change??
+frameSize = (640,480) #change??
 
 
 
@@ -20,7 +20,7 @@ criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 objp = np.zeros((chessboardSize[0] * chessboardSize[1], 3), np.float32)
 objp[:,:2] = np.mgrid[0:chessboardSize[0],0:chessboardSize[1]].T.reshape(-1,2)
 
-size_of_chessboard_squares_mm = 20 #change
+size_of_chessboard_squares_mm = 31 #change
 objp = objp * size_of_chessboard_squares_mm
 
 
@@ -29,21 +29,26 @@ objpoints = [] # 3d point in real world space
 imgpointsL = [] # 2d points in image plane.
 imgpointsR = []
 
-imagesLeft = glob.glob('images/stereoLeft/*.png')
-imagesRight = glob.glob('images/stereoRight/*.png')
+imagesLeft = sorted(glob.glob('images/stereoLeft/*.png'))
+imagesRight = sorted(glob.glob('images/stereoRight/*.png'))
 for imgLeft, imgRight in zip(imagesLeft, imagesRight):
-
+    
     imgL = cv.imread(imgLeft)
     imgR = cv.imread(imgRight)
+    imgL = cv.resize(imgL, (640, 480))
+    imgR = cv.resize(imgR, (640, 480))
     grayL = cv.cvtColor(imgL, cv.COLOR_BGR2GRAY)
     grayR = cv.cvtColor(imgR, cv.COLOR_BGR2GRAY)
+    
     # Find the chess board corners
     retL, cornersL = cv.findChessboardCorners(grayL, chessboardSize, None)
     retR, cornersR = cv.findChessboardCorners(grayR, chessboardSize, None)
+    print(retR)
     # If found, add object points, image points (after refining them)
-    if retL and retR == True:
+    if (retL and retR) == True:
 
         objpoints.append(objp)
+        
         cornersL = cv.cornerSubPix(grayL, cornersL, (11,11), (-1,-1), criteria)
         imgpointsL.append(cornersL)
 
@@ -77,13 +82,15 @@ newCameraMatrixR, roi_R = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, (wi
 ############## sv calibration #####################################################
 
 flags = 0
-flags |= cv.CALIB_FIX_INTRINSIC
+flags |= cv.CALIB_ZERO_TANGENT_DIST|cv.CALIB_FIX_K1|cv.CALIB_FIX_K2|cv.CALIB_FIX_K3|cv.CALIB_FIX_K4|cv.CALIB_FIX_K5|cv.CALIB_FIX_K6
 criteria_stereo = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, imgpointsL, imgpointsR, newCameraMatrixL,distL, newCameraMatrixR, distR, grayL.shape[::-1], criteria_stereo, flags) #??
 
 #  rectification #
 rectifyScale =1
 rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL,newCameraMatrixR, distR, grayL.shape[::-1],rot,trans,rectifyScale,(0,0))
+np.savetxt('projMatR.txt', projMatrixR)
+np.savetxt('projMatL.txt', projMatrixL)
 stereoMapL =cv.initUndistortRectifyMap(newCameraMatrixL,distL,rectL,projMatrixL,grayL.shape[::-1],cv.CV_16SC2)
 stereoMapR =cv.initUndistortRectifyMap(newCameraMatrixR,distR,rectR,projMatrixR,grayR.shape[::-1],cv.CV_16SC2)
 print("Saving Parameters")

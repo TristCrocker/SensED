@@ -28,7 +28,7 @@ def downsample_map(map_array, target_res):
     # The value selected is the 90th percentile, which should pick up areas of high disparity (and therefore low depth),
     # but also not select outliers.
     downsampled_map = block_reduce(map_array, block_size, func=np.quantile, cval=-1, func_kwargs={'q': 0.9})
-    return downsampled_map
+    return downsampled_map, block_size
 
 
 def upscale_map(downsampled_map, target_rows_and_cols):
@@ -49,6 +49,7 @@ def filter_map(left_disp, left_image, left_matcher, right_image):
     # We need the right disparity map for WLS filter
     wls_filter = cv2.ximgproc.createDisparityWLSFilter(left_matcher)
     right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+    #left_disp = left_matcher.compute(left_image, right_image)
     right_disp = right_matcher.compute(right_image, left_image)
     wls_filter.setLambda(lmbda)
     wls_filter.setSigmaColor(sigma)
