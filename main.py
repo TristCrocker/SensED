@@ -1,15 +1,14 @@
 #Real time implementation in here
+import time
+
 from depth_map import depthProcessing
 from depth_map import map_visualisation
-from picamera2 import Picamera2, Preview
-#import MotorOutputDemo1
 import motor_output
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
-import time
 import keyboard
 import math
+from imutils.video import VideoStream
 from datetime import datetime
 from objectDetection import objectDetection
 
@@ -29,22 +28,8 @@ stereoMapR_x = cvFile.getNode('StereoMapR_x').mat()
 stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 
 #Open cameras
-
-picamLeft = Picamera2(0)
-picamRight = Picamera2(1)
-
-camera_configL = picamLeft.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
-camera_configR = picamRight.create_still_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
-picamLeft.configure(camera_configL)
-picamRight.configure(camera_configR)
-
-picamLeft.start_preview()
-picamRight.start_preview()
-
-picamLeft.start()
-picamRight.start()
-
-
+picamLeft = VideoStream(src=0, usePiCamera=True, resolution=(640, 480)).start()
+picamRight = VideoStream(src=1, usePiCamera=True, resolution=(640, 480)).start()
 
 stereo = depthProcessing.produceStereo()
 
@@ -77,9 +62,8 @@ t0 = datetime.now()
 
 while True:
 
-    imgLeft = picamLeft.capture_array("main")
-    
-    imgRight = picamRight.capture_array("main")
+    imgLeft = picamLeft.read()
+    imgRight = picamRight.read()
     
     try:
         x,y = objectDetection.detectObject(imgLeft, net , classes)
@@ -181,4 +165,6 @@ while True:
 
 drv.realtime_value = 0
 #drv.mode = adafruit_drv2605.MODE_INTTRIG
+picamLeft.stop()
+picamRight.stop()
 cv.destroyAllWindows()
