@@ -8,13 +8,13 @@ import keyboard
 import numpy as np
 from imutils.video import VideoStream
 
-import motor_output
+from motor_output import motor_output
 from depth_map import depthProcessing
 from depth_map import map_visualisation
 from objectDetection import objectDetection
 
-projMatR = np.loadtxt('projMatR.txt')
-projMatL = np.loadtxt('projMatL.txt')
+projMatR = np.loadtxt('camera_images/projMatR.txt')
+projMatL = np.loadtxt('camera_images/projMatL.txt')
 
 # Parameter sliders
 win = cv.namedWindow('Disparity Map')
