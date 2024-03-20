@@ -1,12 +1,13 @@
 # Real time implementation in here
 
 import math
+import time
 from datetime import datetime
 
 import cv2 as cv
 import keyboard
 import numpy as np
-from imutils.video import VideoStream
+from picamera2 import Picamera2, Preview
 
 from motor_output import motor_output
 from depth_map import depthProcessing
@@ -29,8 +30,19 @@ stereoMapR_x = cvFile.getNode('StereoMapR_x').mat()
 stereoMapR_y = cvFile.getNode('StereoMapR_y').mat()
 
 # Open cameras
-picamLeft = VideoStream(src=0, usePiCamera=True, resolution=(640, 480)).start()
-picamRight = VideoStream(src=1, usePiCamera=True, resolution=(640, 480)).start()
+picamLeft = Picamera2(0)
+picamRight = Picamera2(1)
+
+camera_configL = picamLeft.create_video_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
+camera_configR = picamRight.create_video_configuration(main={"size": (640, 480)}, lores={"size": (640, 480)}, display="main")
+
+picamLeft.configure(camera_configL)
+picamRight.configure(camera_configR)
+
+picamLeft.start()
+picamRight.start()
+
+time.sleep(2)
 
 stereo = depthProcessing.produceStereo()
 
@@ -42,8 +54,8 @@ t0 = datetime.now()
 
 # Real time loop
 while True:
-    imgLeft = picamLeft.read()
-    imgRight = picamRight.read()
+    imgLeft = picamLeft.capture_array()
+    imgRight = picamRight.capture_array()
 
     try:
         x, y = objectDetection.detectObject(imgLeft, net, classes)
