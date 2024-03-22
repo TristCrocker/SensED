@@ -2,7 +2,7 @@ import board  # CircuitPython board library
 import busio  # CircuitPython busio library
 import adafruit_pca9685  # Adafruit PCA9685 library
 import numpy as np
-import multiprocessing 
+from threading import Thread
 import time
 import math
 
@@ -48,17 +48,19 @@ class PCA9685_Controller:
         # Create an instance for each address
         for address in i2c_addresses:
             pca9685 = adafruit_pca9685.PCA9685(self.i2c, address=address)
-            
             pca9685.frequency = 60  # Example frequency; adjust as needed 
             self.pca9685_instances[address] = pca9685
 
-        self.replacement_signal = multiprocessing.Event()
+        self.intensity_pattern_array = [[(0, 0) for col in range(8)] for row in range(8)]
+
+        self.threads = []
+
+        self.terminate = False
 
     
-    def control_motors(self, intensity_pattern_array):
-      
+    def start_motors(self, intensity_pattern_array=None):
         """
-        Controls motors based on an intensity/pattern array using multiprocessing.
+        Controls motors based on an intensity/pattern array using multithreading.
 
         Args:
             intensity_pattern_array (np.ndarray): An 8x8 NumPy array where each 
@@ -67,50 +69,60 @@ class PCA9685_Controller:
                                                   - pattern_id (int):  Determines the vibration pattern.
         """
 
-        self.replacement_signal.set()
-        # Wait for processes to complete
-        for p in self.processes:
-            p.join() 
+        if (intensity_pattern_array != None):
+            self.intensity_pattern_array = intensity_pattern_array
 
-        def motor_worker(controller_id, motor_data):
+        def motor_worker(controller_id, motor_id):
             """Worker function to control a single motor"""
             if (controller_id[0] not in self.pca9685_instances):
-                return
-
+                    return
+            
             controller = self.pca9685_instances[controller_id[0]]
             channel = controller_id[1]  # Adjust this if using a different channel
-            distance, pattern_id = motor_data
 
-            #Calculates the intensity we want to have of the motor
-            intensity = (1/(1+math.e**(self.a*(distance/1000) - self.c)))
+            while True:
 
-            duty_cycle = int(0xFFFF * intensity)  
+                if (self.terminate == True):
+                    controller.channels[channel].duty_cycle = 0
+                    break
+                
+                distance, pattern_id = self.intensity_pattern_array[motor_id[0]][motor_id[1]]
 
-            if pattern_id == 1:  # Example patterns
-                controller.channels[channel].duty_cycle = duty_cycle
-            elif pattern_id == 2:
-                self.replacement_signal = multiprocessing.Event()
-                while not self.replacement_signal.is_set():
+                #Calculates the intensity we want to have of the motor
+                intensity = (1/(1+math.e**(self.a*(distance/1000) - self.c)))
+
+                duty_cycle = int(0xFFFF * intensity)  
+
+                if pattern_id == 1:  # Example patterns
                     controller.channels[channel].duty_cycle = duty_cycle
-
+                elif pattern_id == 2:
+                    controller.channels[channel].duty_cycle = duty_cycle
                     time.sleep(0.2)
                     controller.channels[channel].duty_cycle = 0
                     time.sleep(0.2)
-      
-            # ... Add more patterns ... 
+                # ... Add more patterns ... 
 
-        # Use multiprocessing
-        
-        self.processes = []
         
         for row_index, row in enumerate(intensity_pattern_array):
             for col_index, data in enumerate(row):
                 controller_id = self.cal[(row_index, col_index)]
+                t = Thread(target=motor_worker, 
+                                            args=(controller_id, (row_index, col_index)))
+                self.threads.append(t)
 
-                p = multiprocessing.Process(target=motor_worker, 
-                                            args=(controller_id, data))
-                self.processes.append(p)
-                p.start()
+        for t in self.threads:
+            t.start()
+
+
+    def update_intensities(self, intensity_pattern_array):
+        self.intensity_pattern_array = intensity_pattern_array
+
+
+    def stop_motors(self):
+        self.terminate = True
+
+        for t in self.threads:
+            t.join()
 
     def singleSleaveControl(self, intensity_pattern_array, shielMode=False):
         '''Merges the array into a 8x4 by taking the max of the pairs of arrays in rows Also takes the largest pattern ID as the pattern'''
