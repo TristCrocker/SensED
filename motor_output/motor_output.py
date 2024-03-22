@@ -48,6 +48,7 @@ class PCA9685_Controller:
         # Create an instance for each address
         for address in i2c_addresses:
             pca9685 = adafruit_pca9685.PCA9685(self.i2c, address=address)
+            
             pca9685.frequency = 60  # Example frequency; adjust as needed 
             self.pca9685_instances[address] = pca9685
 
@@ -55,6 +56,7 @@ class PCA9685_Controller:
 
     
     def control_motors(self, intensity_pattern_array):
+      
         """
         Controls motors based on an intensity/pattern array using multiprocessing.
 
@@ -74,6 +76,7 @@ class PCA9685_Controller:
             """Worker function to control a single motor"""
             if (controller_id[0] not in self.pca9685_instances):
                 return
+
             controller = self.pca9685_instances[controller_id[0]]
             channel = controller_id[1]  # Adjust this if using a different channel
             distance, pattern_id = motor_data
@@ -89,17 +92,21 @@ class PCA9685_Controller:
                 self.replacement_signal = multiprocessing.Event()
                 while not self.replacement_signal.is_set():
                     controller.channels[channel].duty_cycle = duty_cycle
+
                     time.sleep(0.2)
                     controller.channels[channel].duty_cycle = 0
                     time.sleep(0.2)
+      
             # ... Add more patterns ... 
 
         # Use multiprocessing
         
         self.processes = []
+        
         for row_index, row in enumerate(intensity_pattern_array):
             for col_index, data in enumerate(row):
                 controller_id = self.cal[(row_index, col_index)]
+
                 p = multiprocessing.Process(target=motor_worker, 
                                             args=(controller_id, data))
                 self.processes.append(p)
